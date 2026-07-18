@@ -30,11 +30,28 @@ export function updateDiagnostics(document: vscode.TextDocument) {
 	const lines = document.getText().split("\n");
 	for (let i = 0; i < lines.length; i++) {
 		const helper = new DiagnosticHelper(document, i);
-		const line = lines[i].trimEnd();
+		const line = (() => {
+			const lastChar = lines[i].at(-1);
+			if (lastChar && isEOL(lastChar)) {
+				return lines[i].slice(0, -1);
+			}
+			return lines[i];
+		})();
 
 		if (line.trim() !== line) {
-			const extraStartingPadding = line.length - line.trim().length;
-			helper.error("Extra padding should be removed", 0, extraStartingPadding);
+			const extraPadding = line.length - line.trim().length;
+			if (line.trimStart() !== line) {
+				// padding is at the start
+				helper.error("Extra padding should be removed", 0, extraPadding);
+			} else {
+				// padding is at the end
+				helper.error(
+					"Extra padding should be removed",
+					line.length - extraPadding,
+					line.length,
+				);
+			}
+
 			continue;
 		}
 
@@ -94,6 +111,10 @@ export function updateDiagnostics(document: vscode.TextDocument) {
 	}
 
 	logAmountOfErrors(document);
+}
+
+function isEOL(char: string) {
+	return /\r?\n|\r/.test(char);
 }
 
 class DiagnosticHelper {
