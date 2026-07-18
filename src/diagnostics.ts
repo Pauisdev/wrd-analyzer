@@ -37,14 +37,11 @@ export function updateDiagnostics(document: vscode.TextDocument) {
 			helper.error("Extra padding should be removed", 0, extraStartingPadding);
 			continue;
 		}
-		if (!line.startsWith("<")) {
-			helper.error("Missing starting '<' bracket", 0, 1);
+
+		if (line === "") {
 			continue;
 		}
-		if (!line.endsWith(">")) {
-			helper.error("Missing ending '>' bracket", line.length, line.length);
-			continue;
-		}
+
 		const [opCode, ...args] = line.slice(1, -1).split(" ");
 		if (!isOpCode(opCode)) {
 			helper.error("Unknown OP CODE.", 0, opCode.length);
